@@ -1,0 +1,6 @@
+# Preserve Kaggle JAX/JAXLIB. scripts/ensure_libtpu.py installs proven libtpu==0.0.17 only when missing.
+Flask>=3.0,<4
+keras==3.15.1
+keras-hub==0.31.0
+numpy==2.5.2
+Pillow>=10,<13
