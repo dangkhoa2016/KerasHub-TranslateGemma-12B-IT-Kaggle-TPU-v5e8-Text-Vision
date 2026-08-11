@@ -1,0 +1,9 @@
+KerasHub TranslateGemma 12B IT on Kaggle TPU v5e-8 — v1.0.0
+
+The MIT license in LICENSE covers original source code and documentation authored for this project.
+TranslateGemma model weights, Keras/KerasHub, JAX, Flask, Pillow, Cloudflare tooling,
+and other third-party components remain subject to their own licenses and terms.
+
+This source archive does not contain TranslateGemma model weights.
+Runtime credentials, logs, process state, tunnel state, caches, and generated archives
+are excluded from clean source packages.
