@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install CPU-only test dependencies
+        run: python -m pip install -r requirements-ci.txt
+      - name: Verify source before release
+        run: |
+          bash scripts/test_unit.sh
+          python scripts/check_docs.py
+          python -m compileall -q src scripts tests
+          find scripts -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+          node --check clients/node/translategemma-client.mjs
+          python scripts/secret_scan.py .
+      - name: Build release artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          base="KerasHub-TranslateGemma-12B-IT-Kaggle-TPU-v5e8-Text-Vision-${GITHUB_REF_NAME}"
+          archive="dist/${base}.zip"
+          notebook="dist/${base}-kaggle.ipynb"
+          python scripts/package_source.py "$archive"
+          cp notebooks/kaggle-tpu-v5e8-text-vision.ipynb "$notebook"
+          python scripts/secret_scan.py "$archive"
+          unzip -t "$archive"
+          sha256sum "$archive" > "${archive}.sha256"
+          sha256sum "$notebook" > "${notebook}.sha256"
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-and-kaggle-notebook-${{ github.ref_name }}
+          path: dist/*
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "TranslateGemma 12B ${GITHUB_REF_NAME}" \
+            --generate-notes
